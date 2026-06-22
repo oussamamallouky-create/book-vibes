@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr" id="main-html" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title id="site-title">Smart Books - متجر الكتب الذكي</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&family=Plus+Jakarta+Sans:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --font-ar: 'Cairo', sans-serif;
+            --font-en: 'Plus Jakarta Sans', sans-serif;
+        }
+        body {
+            font-family: var(--font-en);
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            min-height: 100vh;
+        }
+        [dir="rtl"] body { font-family: var(--font-ar); }
+
+        .book-container { perspective: 1200px; }
+        .book-card {
+            transition: transform 0.5s cubic-bezier(0.25, 0.8, 0.25, 1), box-shadow 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
+            transform-style: preserve-3d;
+        }
+        .book-card:hover {
+            transform: rotateY(-18deg) translateY(-12px) rotateX(6deg);
+            box-shadow: -20px 25px 40px rgba(0, 0, 0, 0.18), 0px 8px 20px rgba(99, 102, 241, 0.25);
+        }
+        .book-spine {
+            position: absolute;
+            top: 0; left: 0; width: 14px; height: 100%;
+            background: linear-gradient(to right, rgba(0,0,0,0.3) 0%, rgba(255,255,255,0.1) 50%, rgba(0,0,0,0.2) 100%);
+            transform: rotateY(-90deg) translateZ(7px);
+            transform-origin: left;
+            border-radius: 2px 0 0 2px;
+        }
+        [dir="rtl"] .book-spine {
+            left: auto; right: 0;
+            transform: rotateY(90deg) translateZ(7px);
+            transform-origin: right;
+            border-radius: 0 2px 2px 0;
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px) scale(0.95); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        .animate-fade-in-up { animation: fadeInUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+
+        .slide-fade {
+            transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            opacity: 0;
+            transform: translateX(50px) scale(0.9);
+            position: absolute;
+            pointer-events: none;
+        }
+        .slide-fade.active {
+            opacity: 1;
+            transform: translateX(0) scale(1);
+            position: relative;
+            pointer-events: auto;
+        }
+    </style>
+</head>
+<body class="text-gray-800 transition-all duration-500 overflow-x-hidden">
+
+    <!-- Navigation -->
+    <nav class="bg-white/80 backdrop-blur-md shadow-md py-4 px-6 sticky top-0 z-50 border-b border-gray-100">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            <div class="flex items-center gap-3 cursor-pointer">
+                <div class="bg-gradient-to-tr from-indigo-600 to-purple-600 text-white p-3 rounded-2xl shadow-lg">
+                    <i class="fa-solid fa-book-open text-xl animate-pulse"></i>
+                </div>
+                <span class="text-2xl font-black tracking-tight bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent" id="nav-logo">SmartBooks</span>
+            </div>
+            <div class="hidden md:flex items-center gap-8 font-bold text-gray-600">
+                <a href="#hero" id="nav-home" class="hover:text-indigo-600 transition-all">Home</a>
+                <a href="#store" id="nav-store" class="hover:text-indigo-600 transition-all">Catalog</a>
+                <a href="#contact" id="nav-contact" class="hover:text-indigo-600 transition-all">Contact</a>
+            </div>
+            <div class="flex items-center gap-4">
+                <span id="welcome-msg" class="hidden lg:inline text-sm font-semibold text-gray-500"></span>
+                <button id="lang-toggle" onclick="toggleLanguage()" class="bg-gradient-to-r from-indigo-50 to-purple-50 text-indigo-700 border border-indigo-100 px-4 py-2.5 rounded-xl text-sm font-extrabold cursor-pointer">English</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section with Animated Slider -->
+    <header id="hero" class="relative overflow-hidden bg-gradient-to-br from-slate-900 via-indigo-950 to-purple-950 text-white py-24 px-6">
+        <div class="absolute -top-40 -left-40 w-96 h-96 bg-purple-600 rounded-full filter blur-3xl opacity-20"></div>
+        <div class="absolute -bottom-40 -right-40 w-96 h-96 bg-indigo-600 rounded-full filter blur-3xl opacity-20"></div>
+        
+        <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 items-center relative z-10">
+            <div class="text-center lg:text-left animate-fade-in-up">
+                <span class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-indigo-500/15 border border-indigo-500/30 text-indigo-300 text-xs font-bold mb-6 uppercase">
+                    <i class="fa-solid fa-sparkles text-amber-400"></i> <span id="hero-tag">Smart Reading</span>
+                </span>
+                <h2 id="hero-title" class="text-4xl sm:text-5xl lg:text-6xl font-black leading-tight mb-6 bg-gradient-to-r from-white via-indigo-100 to-purple-200 bg-clip-text text-transparent">Discover Stories</h2>
+                <p id="hero-subtitle" class="text-indigo-200/80 text-base md:text-lg max-w-xl mx-auto lg:mx-0 mb-8">Explore our treasury of digital books and amazing stories.</p>
+                <div class="flex flex-wrap justify-center lg:justify-start gap-4">
+                    <a href="#store" id="hero-cta-shop" class="bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-extrabold px-8 py-4 rounded-xl shadow-lg hover:-translate-y-1 transition-all">Browse Books</a>
+                </div>
+            </div>
+            
+            <div class="flex justify-center lg:justify-end relative h-96 w-full items-center">
+                <div id="hero-slider-container" class="w-full max-w-[320px]"></div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Catalog Section -->
+    <main id="store" class="max-w-7xl mx-auto px-6 py-20">
+        <div class="text-center mb-16">
+            <h3 id="store-title" class="text-3xl md:text-4xl font-extrabold text-gray-900 mb-4">Our Treasury</h3>
+            <p id="store-subtitle" class="text-gray-500 max-w-lg mx-auto">Filter through stories and novels dynamically.</p>
+            
+            <div class="flex flex-wrap justify-center gap-4 mt-10">
+                <button onclick="filterBooks('all')" id="btn-filter-all" class="filter-btn active px-7 py-3 rounded-2xl font-bold text-sm cursor-pointer border">
+                    <i class="fa-solid fa-border-all mr-1"></i> <span id="lbl-all">All Books</span>
+                </button>
+                <button onclick="filterBooks('stories')" id="btn-filter-stories" class="filter-btn bg-white text-gray-600 border px-7 py-3 rounded-2xl font-bold text-sm cursor-pointer shadow-sm">
+                    <i class="fa-solid fa-wand-magic-sparkles mr-1"></i> <span id="lbl-stories">Stories</span>
+                </button>
+                <button onclick="filterBooks('novels')" id="btn-filter-novels" class="filter-btn bg-white text-gray-600 border px-7 py-3 rounded-2xl font-bold text-sm cursor-pointer shadow-sm">
+                    <i class="fa-solid fa-book-bookmark mr-1"></i> <span id="lbl-novels">Novels</span>
+                </button>
+            </div>
+        </div>
+
+        <div id="books-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8"></div>
+    </main>
+
+    <!-- Contact Form -->
+    <section id="contact" class="bg-gradient-to-br from-indigo-50/70 via-purple-50/50 to-indigo-100/30 py-20 px-6">
+        <div class="max-w-4xl mx-auto bg-white rounded-3xl shadow-2xl p-8 md:p-12 border">
+            <div class="text-center mb-10">
+                <h3 id="contact-title" class="text-3xl font-black text-gray-900">Keep in Touch</h3>
+                <p id="contact-subtitle" class="text-gray-500 mt-2">Have questions? Drop us a message.</p>
+            </div>
+            <form id="contact-form" action="https://api.web3forms.com/submit" method="POST" onsubmit="handleContactSubmit(event)" class="space-y-6">
+                <input type="hidden" name="access_key" value="20fbcec4-33ee-4441-bdff-afade229510f">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label id="lbl-form-name" class="block text-sm font-bold text-gray-700 mb-2">Name</label>
+                        <input type="text" name="name" required class="w-full px-4 py-3 bg-gray-50 border rounded-2xl outline-none">
+                    </div>
+                    <div>
+                        <label id="lbl-form-email" class="block text-sm font-bold text-gray-700 mb-2">Email</label>
+                        <input type="email" name="email" required class="w-full px-4 py-3 bg-gray-50 border rounded-2xl outline-none">
+                    </div>
+                </div>
+                <div>
+                    <label id="lbl-form-message" class="block text-sm font-bold text-gray-700 mb-2">Message</label>
+                    <textarea name="message" rows="4" required class="w-full p-4 bg-gray-50 border rounded-2xl outline-none resize-none"></textarea>
+                </div>
+                <div class="text-center">
+                    <button type="submit" id="btn-submit" class="bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-extrabold px-12 py-4 rounded-2xl shadow-xl cursor-pointer w-full md:w-auto">Send</button>
+                </div>
+            </form>
+        </div>
+    </section>
+
+    <footer class="bg-slate-950 text-slate-300/80 py-12 px-6 border-t border-white/5">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
+            <span class="text-xl font-bold text-white">SmartBooks</span>
+            <p class="text-sm text-slate-400" id="footer-text">© 2026 SmartBooks Store.</p>
+        </div>
+    </footer>
+
+    <!-- النافذة الذكية للتحميل الحقيقي ودعم الإعلانات المربحة -->
+    <div id="ad-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 opacity-0 pointer-events-none transition-all duration-300 px-4">
+        <div class="bg-white rounded-3xl p-6 max-w-md w-full text-center shadow-2xl relative border border-indigo-100">
+            <div class="bg-amber-100 text-amber-700 px-4 py-1.5 rounded-full text-xs font-bold inline-block mb-4">
+                <i class="fa-solid fa-triangle-exclamation mr-1"></i> <span id="ad-badge-text">Antivirus & Link Verification</span>
+            </div>
+            
+            <div class="bg-slate-50 border border-dashed border-slate-200 p-6 rounded-2xl mb-6">
+                <i class="fa-solid fa-file-pdf text-red-500 text-4xl mb-2 animate-bounce"></i>
+                <h5 id="ad-target-book-name" class="text-lg font-bold text-slate-800">Book Name</h5>
+                <p class="text-xs text-slate-400 mt-1">File Size: ~4.8 MB | Format: PDF</p>
+            </div>
+
+            <p id="ad-timer-msg" class="text-sm font-bold text-gray-500 mb-4">Securing your download link... <span id="ad-countdown" class="text-indigo-600 font-black text-lg">10</span>s</p>
+            
+            <button id="btn-download-pdf" disabled onclick="executeDownload()" class="w-full bg-gray-300 text-gray-500 font-black py-4 rounded-xl cursor-not-allowed transition-all">
+                <i class="fa-solid fa-spinner fa-spin mr-1"></i> <span id="lbl-dl-btn">Checking Link Safety...</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Success Modal -->
+    <div id="modal-success" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/75 opacity-0 pointer-events-none transition-all duration-300 px-4">
+        <div class="bg-white rounded-3xl p-8 max-w-md w-full text-center shadow-2xl transition-all border">
+            <div class="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-6">
+                <i class="fa-solid fa-circle-check text-4xl"></i>
+            </div>
+            <h4 id="modal-title" class="text-2xl font-extrabold text-gray-900 mb-3">Done!</h4>
+            <p id="modal-message" class="text-gray-500 mb-6"></p>
+            <button onclick="closeModal()" class="bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-extrabold px-10 py-3.5 rounded-xl cursor-pointer">OK</button>
+        </div>
+    </div>
+
+    <script>
+        // ⚠️ ضَعْ رَابِطَ إِعْلَانِكَ هُنَا (Men Adsterra Direct Link aw any Network)
+        const REAL_AD_LINK = "https://www.example.com-your-ad-link-here"; 
+
+        const translations = {
+            ar: {
+                title: "سمارت بوكس - متجر الكتب الذكي", logo: "مكتبتي_الذكية", home: "الرئيسية", catalog: "الكتالوج", contact: "اتصل بنا", welcome: "مرحباً بك في عالم القراءة",
+                heroTag: "تجربة قراءة ذكية واستثنائية", heroTitle: "اكتشف مغامرتك الأدبية القادمة", heroSubtitle: "استمتع بمجموعتنا المختارة بعناية من أفضل الروايات والقصص القصيرة مجاناً ومدفوعاً.", heroShop: "تصفح الكتب",
+                storeTitle: "خزانة كتبنا الرائعة", storeSubtitle: "قم بتصفح الفئات المختلفة للقصص والروايات بكل سهولة وابحث عما يلهمك.",
+                lblAll: "جميع الكتب", lblStories: "القصص", lblNovels: "الروايات", buyBtn: "اطلب الآن", downloadBtn: "تحميل PDF مجاناً", toggleBtn: "English",
+                contactTitle: "دعنا نبقى على تواصل", contactSubtitle: "هل لديك أي استفسار؟ راسلنا فوراً!",
+                formName: "اسمك الكريم", formEmail: "بريدك الإلكتروني", formMessage: "رسالتك اللطيفة", submitBtn: "إرسال الرسالة", footerText: "© 2026 متجر سمارت بوكس.",
+                modalSuccessTitle: "تم بنجاح!", modalSuccessMsg: "لقد تلقينا طلبك بنجاح! سنتواصل معك قريباً جداً.",
+                adBadge: "فحص أمان الرابط ضد الفيروسات", adWaitMsg: "جاري تجهيز وتأمين رابط الـ PDF المباشر: <span id='ad-countdown' class='text-indigo-600 font-black text-lg'>10</span> ثوانٍ...", adReadyMsg: "تم فحص الرابط! ملف الـ PDF آمن وجاهز للتحميل التلقائي.", dlBtnWait: "يرجى الانتظار لتجهيز الرابط...", dlBtnReady: "اضغط هنا للتحميل الفوري المباشر",
+                dir: "rtl", langCode: "ar",
+                books: [
+                    // ⚠️ قم بتغيير 'pdfUrl' بروابط حقيقية للكتب (مثال: من ميديا فاير أو جوجل درايف)
+                    { id: 1, type: "stories", title: "الأمير الصغير", price: "85 درهم", author: "أنطوان دي سانت إكزوبيري", img: "https://images.unsplash.com/photo-1543002588-bfa74002ed7e?q=80&w=400", bg: "from-blue-500/10 to-indigo-500/10", pdfUrl: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf" },
+                    { id: 2, type: "novels", title: "الخيميائي", price: "95 درهم", author: "باولو كويلو", img: "https://images.unsplash.com/photo-1512820790803-83ca734da794?q=80&w=400", bg: "from-amber-500/10 to-orange-500/10", pdfUrl: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf" },
+                    { id: 3, type: "stories", title: "ألف ليلة وليلة", price: "150 درهم", author: "تراث شرقي عريق", img: "https://images.unsplash.com/photo-1476275466078-4007374efbbe?q=80&w=400", bg: "from-rose-500/10 to-purple-500/10", pdfUrl: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf" },
+                    { id: 4, type: "novels", title: "الجريمة والعقاب", price: "180 درهم", author: "فيودور دوستويفسكي", img: "https://images.unsplash.com/photo-1541963463532-d68292c34b19?q=80&w=400", bg: "from-teal-500/10 to-emerald-500/10", pdfUrl: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf" },
+                    { id: 5, type: "novels", title: "أجنحة متكسرة", price: "70 درهم", author: "جبران خليل جبران", img: "https://images.unsplash.com/photo-1497633762265-9d179a990aa6?q=80&w=400", bg: "from-pink-500/10 to-rose-500/10", pdfUrl: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf" },
+                    { id: 6, type: "stories", title: "مغامرات شيرلوك هولمز", price: "110 درهم", author: "آرثر كونان دويل", img: "https://images.unsplash.com/photo-1531988042231-d39a9cc12a9a?q=80&w=400", bg: "from-purple-500/10 to-blue-500/10", pdfUrl: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf" }
+                ]
+            },
+            en: {
+                title: "Smart Books - Ultimate Bookstore", logo: "SmartBooks", home: "Home", catalog: "Catalog", contact: "Contact", welcome: "Welcome to our reader sanctuary",
+                heroTag: "Smart Reading Experience", heroTitle: "Discover Your Next Literary Adventure", heroSubtitle: "Explore our curated collection of bestselling novels and short stories.", heroShop: "Browse Books",
+                storeTitle: "Our Book Treasury", storeSubtitle: "Filter through our stories and novels dynamically to find what inspires you.",
+                lblAll: "All Books", lblStories: "Stories", lblNovels: "Novels", buyBtn: "Order Now", downloadBtn: "Download Free PDF", toggleBtn: "العربية",
+                contactTitle: "Let's Keep in Touch", contactSubtitle: "Have a question? Drop us a message!",
+                formName: "Your Name", formEmail: "Email Address", formMessage: "Your Message", submitBtn: "Send Message", footerText: "© 2026 SmartBooks Store.",
+                modalSuccessTitle: "Successfully Sent!", modalSuccessMsg: "We've received your request successfully!",
+                adBadge: "Antivirus & Link Verification", adWaitMsg: "Securing your direct download link: <span id='ad-countdown' class='text-indigo-600 font-black text-lg'>10</span> seconds...", adReadyMsg: "Link Verified! Your PDF is completely safe and ready.", dlBtnWait: "Checking Link Safety...", dlBtnReady: "Click Here to Download Now",
+                dir: "ltr", langCode: "en",
+                books: [
+                    { id: 1, type: "stories", title: "The Little Prince", price: "$10.00", author: "Antoine de Saint-Exupéry", img: "https://images.unsplash.com/photo-1543002588-bfa74002ed7e?q=80&w=400", bg: "from-blue-500/10 to-indigo-500/10", pdfUrl: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf" },
+                    { id: 2, type: "novels", title: "The Alchemist", price: "$12.00", author: "Paulo Coelho", img: "https://images.unsplash.com/photo-1512820790803-83ca734da794?q=80&w=400", bg: "from-amber-500/10 to-orange-500/10", pdfUrl: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf" },
+                    { id: 3, type: "stories", title: "Arabian Nights", price: "$18.00", author: "Traditional Folklore", img: "https://images.unsplash.com/photo-1476275466078-4007374efbbe?q=80&w=400", bg: "from-rose-500/10 to-purple-500/10", pdfUrl: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf" },
+                    { id: 4, type: "novels", title: "Crime and Punishment", price: "$20.00", author: "Fyodor Dostoevsky", img: "https://images.unsplash.com/photo-1541963463532-d68292c34b19?q=80&w=400", bg: "from-teal-500/10 to-emerald-500/10", pdfUrl: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf" },
+                    { id: 5, type: "novels", title: "The Broken Wings", price: "$9.00", author: "Kahlil Gibran", img: "https://images.unsplash.com/photo-1497633762265-9d179a990aa6?q=80&w=400", bg: "from-pink-500/10 to-rose-500/10", pdfUrl: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf" },
+                    { id: 6, type: "stories", title: "The Sherlock Holmes Casebook", price: "$15.00", author: "Arthur Conan Doyle", img: "https://images.unsplash.com/photo-1531988042231-d39a9cc12a9a?q=80&w=400", bg: "from-purple-500/10 to-blue-500/10", pdfUrl: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf" }
+                ]
+            }
+        };
+
+        let currentLang = 'en';
+        let activeFilter = 'all';
+        let sliderInterval;
+        let currentPdfUrl = "";
+
+        function updateUI(lang) {
+            currentLang = lang;
+            const data = translations[lang];
+
+            const htmlTag = document.getElementById('main-html');
+            htmlTag.setAttribute('dir', data.dir);
+            htmlTag.setAttribute('lang', data.langCode);
+
+            document.title = data.title;
+            document.getElementById('nav-logo').innerText = data.logo;
+            document.getElementById('nav-home').innerText = data.home;
+            document.getElementById('nav-store').innerText = data.catalog;
+            document.getElementById('nav-contact').innerText = data.contact;
+            document.getElementById('welcome-msg').innerText = data.welcome;
+            document.getElementById('hero-tag').innerText = data.heroTag;
+            document.getElementById('hero-title').innerText = data.heroTitle;
+            document.getElementById('hero-subtitle').innerText = data.heroSubtitle;
+            document.getElementById('hero-cta-shop').innerText = data.heroShop;
+            document.getElementById('store-title').innerText = data.storeTitle;
+            document.getElementById('store-subtitle').innerText = data.storeSubtitle;
+            document.getElementById('lbl-all').innerText = data.lblAll;
+            document.getElementById('lbl-stories').innerText = data.lblStories;
+            document.getElementById('lbl-novels').innerText = data.lblNovels;
+            document.getElementById('lang-toggle').innerText = data.toggleBtn;
+            document.getElementById('contact-title').innerText = data.contactTitle;
+            document.getElementById('contact-subtitle').innerText = data.contactSubtitle;
+            document.getElementById('lbl-form-name').innerText = data.formName;
+            document.getElementById('lbl-form-email').innerText = data.formEmail;
+            document.getElementById('lbl-form-message').innerText = data.formMessage;
+            document.getElementById('btn-submit').innerText = data.submitBtn;
+            document.getElementById('footer-text').innerText = data.footerText;
+
+            renderBooks();
+            setupHeroSlider();
+        }
+
+        function setupHeroSlider() {
+            const container = document.getElementById('hero-slider-container');
+            container.innerHTML = '';
+            clearInterval(sliderInterval);
+
+            const sampleBooks = translations[currentLang].books.slice(0, 5);
+            
+            sampleBooks.forEach((book, idx) => {
+                const activeClass = idx === 0 ? 'active' : '';
+                container.innerHTML += `
+                    <div class="slide-fade ${activeClass} w-full book-container" data-slide-index="${idx}">
+                        <div class="book-card relative w-60 h-84 mx-auto rounded-r-xl shadow-2xl overflow-hidden cursor-pointer" style="transform: rotateY(-12deg);">
+                            <div class="book-spine"></div>
+                            <img src="${book.img}" alt="${book.title}" class="w-full h-full object-cover">
+                            <div class="absolute inset-0 bg-gradient-to-t from-black/95 via-black/20 to-transparent p-6 flex flex-col justify-end">
+                                <span class="text-[10px] font-bold uppercase tracking-wider text-purple-400 mb-1">${book.type}</span>
+                                <h4 class="text-xl font-bold text-white mb-1 leading-tight">${book.title}</h4>
+                                <p class="text-xs text-gray-300">By ${book.author}</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            let currentSlide = 0;
+            sliderInterval = setInterval(() => {
+                const slides = container.querySelectorAll('.slide-fade');
+                if(!slides.length) return;
+                slides[currentSlide].classList.remove('active');
+                currentSlide = (currentSlide + 1) % slides.length;
+                slides[currentSlide].classList.add('active');
+            }, 3500);
+        }
+
+        function renderBooks() {
+            const data = translations[currentLang];
+            const container = document.getElementById('books-container');
+            container.innerHTML = ''; 
+
+            const filtered = data.books.filter(book => activeFilter === 'all' || book.type === activeFilter);
+
+            filtered.forEach((book, index) => {
+                container.innerHTML += `
+                    <div class="book-container bg-gradient-to-br ${book.bg} rounded-3xl p-6 border border-white/60 shadow-md flex flex-col justify-between animate-fade-in-up" style="animation-delay: ${index * 0.05}s">
+                        <div class="book-card relative w-44 h-64 mx-auto rounded-r-lg shadow-2xl overflow-hidden cursor-pointer mb-6" style="transform: rotateY(-6deg);">
+                            <div class="book-spine"></div>
+                            <img src="${book.img}" alt="${book.title}" class="w-full h-full object-cover">
+                            <div class="absolute top-3 right-3 bg-white/95 backdrop-blur-md px-3.5 py-1.5 rounded-full text-[10px] font-black text-indigo-700 shadow-md uppercase">
+                                ${book.type === 'stories' ? data.lblStories : data.lblNovels}
+                            </div>
+                        </div>
+
+                        <div class="text-center">
+                            <h4 class="text-xl font-extrabold text-gray-900 mb-1 line-clamp-1">${book.title}</h4>
+                            <p class="text-xs text-gray-400 font-bold mb-4">${book.author}</p>
+                            
+                            <div class="space-y-2.5">
+                                <div class="flex items-center justify-between bg-white/90 p-2.5 rounded-2xl shadow-sm border border-gray-100">
+                                    <span class="text-base font-black text-indigo-600">${book.price}</span>
+                                    <button onclick="triggerOrder('${book.title}')" class="bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-extrabold text-xs px-4 py-2.5 rounded-xl shadow-md transition-all cursor-pointer">
+                                        ${data.buyBtn}
+                                    </button>
+                                </div>
+                                <button onclick="handleDownloadWithAd('${book.title}', '${book.pdfUrl}')" class="w-full bg-slate-900 text-white hover:bg-slate-800 text-xs font-bold py-2.5 rounded-xl transition-all cursor-pointer shadow-sm">
+                                    <i class="fa-solid fa-file-pdf text-red-500 mr-1"></i> ${data.downloadBtn}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        // إستراتيجية الربح: فتح الإعلان في صفحة جديدة والعد التنازلي في الصفحة الحالية
+        function handleDownloadWithAd(bookTitle, pdfUrl) {
+            currentPdfUrl = pdfUrl;
+            const data = translations[currentLang];
+            
+            // 1. فتح رابط الإعلان الحقيقي في نافذة جديدة للربح منه
+            window.open(REAL_AD_LINK, '_blank');
+
+            // 2. إظهار نافذة الانتشار والتحميل في نفس الوقت على الموقع
+            document.getElementById('ad-target-book-name').innerText = bookTitle;
+            document.getElementById('ad-badge-text').innerText = data.adBadge;
+            document.getElementById('ad-timer-msg').innerHTML = data.adWaitMsg;
+            
+            const dlBtn = document.getElementById('btn-download-pdf');
+            const dlBtnLabel = document.getElementById('lbl-dl-btn');
+            
+            dlBtn.disabled = true;
+            dlBtn.className = "w-full bg-gray-200 text-gray-400 font-black py-4 rounded-xl cursor-not-allowed transition-all";
+            dlBtnLabel.innerText = data.dlBtnWait;
+
+            const modal = document.getElementById('ad-modal');
+            modal.classList.remove('opacity-0', 'pointer-events-none');
+
+            let timeLeft = 10; 
+            const countdownEl = document.getElementById('ad-countdown');
+            
+            const timer = setInterval(() => {
+                timeLeft--;
+                if(countdownEl) countdownEl.innerText = timeLeft;
+
+                if(timeLeft <= 0) {
+                    clearInterval(timer);
+                    
+                    document.getElementById('ad-timer-msg').innerText = data.adReadyMsg;
+                    dlBtn.disabled = false;
+                    dlBtn.className = "w-full bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-black py-4 rounded-xl shadow-xl transition-all cursor-pointer transform active:scale-95";
+                    dlBtnLabel.innerText = data.dlBtnReady;
+
+                    // 3. تحميل تلقائي فوري للملف بدون تدخل المستخدم لضمان نزول الكتاب!
+                    executeDownload();
+                }
+            }, 1000);
+        }
+
+        function executeDownload() {
+            // إغلاق النافذة
+            document.getElementById('ad-modal').classList.add('opacity-0', 'pointer-events-none');
+            
+            if (currentPdfUrl) {
+                // إنشاء عنصر خفي لتحميل الـ PDF الحقيقي بنجاح 100%
+                const hiddenAnchor = document.createElement('a');
+                hiddenAnchor.href = currentPdfUrl;
+                hiddenAnchor.target = '_blank';
+                hiddenAnchor.download = ''; // تفعيل النزول التلقائي
+                document.body.appendChild(hiddenAnchor);
+                hiddenAnchor.click();
+                document.body.removeChild(hiddenAnchor);
+            }
+
+            const msg = currentLang === 'en' 
+                ? "Your PDF download has started automatically." 
+                : "بدأ تحميل ملف الـ PDF الخاص بك تلقائياً الآن.";
+            showModal(currentLang === 'en' ? 'Success' : 'تم التحميل', msg);
+        }
+
+        function filterBooks(type) {
+            activeFilter = type;
+            const buttons = {
+                all: document.getElementById('btn-filter-all'),
+                stories: document.getElementById('btn-filter-stories'),
+                novels: document.getElementById('btn-filter-novels')
+            };
+            for (let key in buttons) {
+                if (key === type) buttons[key].classList.add('active', 'text-white');
+                else buttons[key].classList.remove('active', 'text-white');
+            }
+            renderBooks();
+        }
+
+        function toggleLanguage() { updateUI(currentLang === 'en' ? 'ar' : 'en'); }
+        function triggerOrder(bookTitle) {
+            const data = translations[currentLang];
+            showModal(data.modalSuccessTitle, `${data.modalSuccessMsg} (${bookTitle})`);
+        }
+        function handleContactSubmit(event) {
+            event.preventDefault();
+            const form = event.target;
+            fetch(form.action, { method: form.method, body: new FormData(form), headers: { 'Accept': 'application/json' } })
+            .then(() => { form.reset(); });
+        }
+        function showModal(title, message) {
+            document.getElementById('modal-title').innerText = title;
+            document.getElementById('modal-message').innerText = message;
+            document.getElementById('modal-success').classList.remove('opacity-0', 'pointer-events-none');
+        }
+        function closeModal() { document.getElementById('modal-success').classList.add('opacity-0', 'pointer-events-none'); }
+        window.addEventListener('DOMContentLoaded', () => { updateUI('en'); });
+    </script>
+</body>
+</html>
